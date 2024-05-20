@@ -240,22 +240,80 @@ if (isset($_POST['filter'])) {
                 } else {
                     $where = '';
                 }
-                $stmt = $pdo->query('SELECT DISTINCT o.* FROM `Order` o
+                $stmt = $pdo->query("SELECT DISTINCT o.* FROM `Order` o
     JOIN Dealer d ON o.dealer_id = d.id
     JOIN Manager m ON o.manager_id = m.id
     JOIN Car_colour cc ON o.car_colour_id = cc.id
     JOIN Car_colour ccp ON cc.price_id = ccp.id
     JOIN Status s ON o.status_id = s.id
     JOIN Order_status os ON o.order_status_id = os.id
-     . $where . ""
-    ORDER BY o.id ASC"');
+    $where 
+    ORDER BY o.id ASC");
                 break;
             case 'Car_colour':
                 echo "Car_colour";
-                $stmt = $pdo->query('SELECT Car_colour.id, Brand.brand_name, Car.model, Colour.colour_name, Car_colour.vin, Car_colour.price FROM Car_colour JOIN Car ON Car_colour.car_id = Car.id JOIN Brand ON Car.brand_id = Brand.id JOIN Colour ON Car_colour.colour_id = Colour.id');
-                break;
+                $brand_name = $_POST['brand_name'];
+                $model = $_POST['model'];
+                $colour_name = $_POST['colour_name'];
+                $vin = $_POST['vin'];
+                $price = $_POST['price'];
+                $where = [];
+                if ($brand_name != "") {
+                    $list = "(" . join(", ", $brand_name) . ")";
+                    $where[] = "b.brand_name IN $list";
+                }
+                if ($model != "") {
+                    $list = "(" . join(", ", $model) . ")";
+                    $where[] = "m.model IN $list";
+                }
+                if ($colour_name != "") {
+                    $list = "(" . join(", ", $colour_name) . ")";
+                    $where[] = "c.colour_name IN $list";
+                }
+                if ($vin != "") {
+                    $list = "(" . join(", ", $vin) . ")";
+                    $where[] = "cc.vin IN $list";
+                }
+                if ($price != "") {
+                    $list = "(" . join(", ", $price) . ")";
+                    $where[] = "cc.price IN $list";
+                }
+                $conds = join(" AND ", $where);
+                if ($conds != "") {
+                    $where = " WHERE " . $conds;
+                } else {
+                    $where = '';
+                }
+                $stmt = $pdo->query("SELECT cc.id, b.brand_name, m.model, c.colour_name, cc.vin, cc.price 
+    FROM Car_colour cc 
+    JOIN Car m ON cc.car_id = m.id 
+    JOIN Brand b ON m.brand_id = b.id 
+    JOIN Colour c ON cc.colour_id = c.id 
+    $where
+    ");
             case 'Order_status':
-                $stmt = $pdo->query('SELECT os.id, s.status_name, os.order_id, os.date FROM Order_status os JOIN Status s ON os.status_id = s.id');
+                $status_name = $_POST['status_name'];
+                $order_id = $_POST['order_id'];
+                $date = $_POST['date'];
+                $where = [];
+                if ($status_name != "") {
+                    $list = "(" . join(", ", $status_name) . ")";
+                    $where[] = "s.status_name IN $list";
+                }
+                if ($order_id != "") {
+                    $list = "(" . join(", ", $order_id) . ")";
+                    $where[] = "o.order_id IN $list";
+                }
+                if ($date != "") {
+                    $list = "(" . join(", ", $date) . ")";
+                    $where[] = "o.date IN $list";
+                }
+                $stmt = $pdo->query("
+    SELECT os.id, s.status_name, os.order_id, os.date 
+    FROM Order_status os 
+    JOIN Status s ON os.status_id = s.id 
+    $where
+");
                 break;
 
             default:
@@ -295,7 +353,7 @@ if (isset($_POST['filter'])) {
         }
     }
 
-echo "coco";
+
 echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.0/slimselect.min.js" integrity="sha512-mG8eLOuzKowvifd2czChe3LabGrcIU8naD1b9FUVe4+gzvtyzSy+5AafrHR57rHB+msrHlWsFaEYtumxkC90rg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 ';
 echo '<script> new SlimSelect({select: "#add_name"});</script>';

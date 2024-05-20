@@ -41,6 +41,7 @@
 
 <div style="padding:20px;margin-top:30px;line-height:25px;">
     <form method="POST">
+        <input type="hidden" name="tables" value="<?php echo $_POST['tables'];?>">
         <label for="tables">Выберите таблицу</label><br>
         <select name="tables" id="tables">
             <option value="Null">-------</option>
@@ -54,14 +55,6 @@
             <option value="Dealer">Дилер</option>
             <option value="Cars in order">Машины в заказе</option>
             <option value="Order_status">Статус заказа</option>
-        </select><br>
-        <input type="submit" name="submit" value="Показать таблицу"/>
-    </form>
-    <form method="POST">
-        <label for="tables">Выберите таблицу</label><br>
-        <select name="tables" id="tables">
-            <option value="Null"></option>
-            <option value="Brand">Бренд</option>
         </select><br>
         <input type="submit" name="submit" value="Показать таблицу"/>
     </form>
@@ -178,6 +171,130 @@ if (isset($_POST['submit'])) {
         echo 'No data found';
     }
 }
+
+if (isset($_POST['filter'])) {
+        $selectedTable = $_POST['tables'];
+        $keys = array_keys($_POST);
+
+        $host = 'localhost';
+        $db = 'f0940058_carspusher';
+        $user = 'f0940058_carspusher';
+        $pass = 'admin123';
+
+        $charset = 'utf8mb4';
+
+        $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+        $opt = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        $pdo = new PDO($dsn, $user, $pass, $opt);
+
+        require_once("filters.php");
+        try {
+            get_filters($selectedTable);
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+        switch ($selectedTable) {
+            case 'Order':
+                echo "Order";
+                $name = $_POST['name'];
+                $surname = $_POST['surname'];
+                $vin = $_POST['vin'];
+                $price = $_POST['price'];
+                $status_name = $_POST['status_name'];
+                $date = $_POST['date'];
+                $where = [];
+                if ($name != "") {
+                    $list = "(" . join(", ", $name) . ")";
+                    $where[] = "d.name IN $list";
+                }
+                if ($surname != "") {
+                    $list = "(" . join(", ", $surname) . ")";
+                    $where[] = "m.surname IN $list";
+                }
+                if ($vin != "") {
+                    for ($i = 0; $i < count($vin); $i++) {
+                        $vin[$i] = '"' . $vin[$i] . '"';
+                    }
+                    $list = "(" . join(", ", $vin) . ")";
+                    $where[] = "cc.vin IN $list";
+                }
+                if ($price != "") {
+                    $list = "(" . join(", ", $price) . ")";
+                    $where[] = "cc.price IN $list";
+                }
+                if ($status_name != "") {
+                    $list = "(" . join(", ", $status_name) . ")";
+                    $where[] = "s.status_name IN $list";
+                }
+                if ($date != "") {
+                    $list = "(" . join(", ", $date) . ")";
+                    $where[] = "os.date IN $list";
+                }
+                $conds = join(" AND ", $where);
+                if ($conds != "") {
+                    $where = " WHERE " . $conds;
+                } else {
+                    $where = '';
+                }
+                $stmt = $pdo->query('SELECT DISTINCT o.* FROM `Order` o
+    JOIN Dealer d ON o.dealer_id = d.id
+    JOIN Manager m ON o.manager_id = m.id
+    JOIN Car_colour cc ON o.car_colour_id = cc.id
+    JOIN Car_colour ccp ON cc.price_id = ccp.id
+    JOIN Status s ON o.status_id = s.id
+    JOIN Order_status os ON o.order_status_id = os.id
+     . $where . ""
+    ORDER BY o.id ASC"');
+                break;
+            case 'Car_colour':
+                echo "Car_colour";
+                $stmt = $pdo->query('SELECT Car_colour.id, Brand.brand_name, Car.model, Colour.colour_name, Car_colour.vin, Car_colour.price FROM Car_colour JOIN Car ON Car_colour.car_id = Car.id JOIN Brand ON Car.brand_id = Brand.id JOIN Colour ON Car_colour.colour_id = Colour.id');
+                break;
+            case 'Order_status':
+                $stmt = $pdo->query('SELECT os.id, s.status_name, os.order_id, os.date FROM Order_status os JOIN Status s ON os.status_id = s.id');
+                break;
+
+            default:
+                echo 'No table selected';
+                return;
+        }
+
+        $data = $stmt->fetchAll();
+
+        if ($data) {
+            echo '<table border="1">';
+            echo '<tr>';
+
+            foreach (array_keys($data[0]) as $header) {
+                echo "<th>$header</th>";
+            }
+
+            echo '</tr>';
+
+            foreach ($data as $row) {
+                echo '<tr>';
+                $cnt = 0;
+                foreach ($row as $cell) {
+                    if (($cnt == 3) && ($selectedTable == "Order")) {
+                        echo "<td><a href='car_colour.php'>$cell</a></td>";
+                    } else {
+                        echo "<td>$cell</td>";
+                    }
+                    $cnt++;
+                }
+                echo '</tr>';
+            }
+
+            echo '</table>';
+        } else {
+            echo 'No data found';
+        }
+    }
+
 
 echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.0/slimselect.min.js" integrity="sha512-mG8eLOuzKowvifd2czChe3LabGrcIU8naD1b9FUVe4+gzvtyzSy+5AafrHR57rHB+msrHlWsFaEYtumxkC90rg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 ';

@@ -173,7 +173,7 @@ if (isset($_POST['submit'])) {
 }
 
 if (isset($_POST['filter'])) {
-        $selectedTable = $_POST['tables'];
+        $selectedTable = $_POST['table'];
         $keys = array_keys($_POST);
 
         $host = 'localhost';

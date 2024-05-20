@@ -240,15 +240,32 @@ if (isset($_POST['filter'])) {
                 } else {
                     $where = '';
                 }
-                $stmt = $pdo->query("SELECT DISTINCT o.* FROM `Order` o
-    JOIN Dealer d ON o.dealer_id = d.id
-    JOIN Manager m ON o.manager_id = m.id
-    JOIN Car_colour cc ON o.car_colour_id = cc.id
-    JOIN Car_colour ccp ON cc.price_id = ccp.id
-    JOIN Status s ON o.status_id = s.id
-    JOIN Order_status os ON o.order_status_id = os.id
-    $where 
-    ORDER BY o.id ASC");
+                $stmt = $pdo->query("SELECT 
+    `Order`.`id`, 
+    `Dealer`.`name` AS `Dealer`, 
+    `Manager`.`surname` AS `Manager`, 
+    GROUP_CONCAT(`Car_colour`.`vin` SEPARATOR ', ') AS `vins`, 
+    SUM(`Car_colour`.`price`) AS `total_price`, 
+    `Status`.`status_name`, 
+    `Order_status`.`date`
+  FROM 
+    `Order` 
+    LEFT JOIN `Dealer` ON `Order`.`dealer_id` = `Dealer`.`id` 
+    LEFT JOIN `Manager` ON `Order`.`manager_id` = `Manager`.`id` 
+    LEFT JOIN `Cars in order` ON `Cars in order`.`order_id` = `Order`.`id` 
+    LEFT JOIN `Car_colour` ON `Cars in order`.`car_colour_id` = `Car_colour`.`id` 
+    LEFT JOIN `Order_status` ON `Order_status`.`order_id` = `Order`.`id` 
+    LEFT JOIN `Status` ON `Order_status`.`status_id` = `Status`.`id` 
+  GROUP BY 
+    `Order`.`id`, 
+    `Dealer`.`name`, 
+    `Manager`.`surname`, 
+    `Status`.`status_name`, 
+    `Order_status`.`date`
+  " . $where . "
+  ORDER BY 
+    `id` ASC
+");
                 break;
             case 'Car_colour':
                 echo "Car_colour";

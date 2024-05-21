@@ -22,7 +22,6 @@ function get_filters($table_name)
             $name = $key;
             $arr_name = $name . "[]";
             echo "<label for='$arr_name'>$name</label>";
-            echo $name;
             echo "<select class='form-control' name='$arr_name' id='add_$name' style='min-width: 10%' multiple>";
             echo "<option value=''>-----</option>";
             foreach ($values as $value) {
@@ -33,8 +32,9 @@ function get_filters($table_name)
             echo "</div>";
 
         }
-        echo "<input type='hidden' name='table' value='$table_name'>";
         echo "<button class='filter' name='filter'>Отфильтровать</button>";
+        echo "<input type='hidden' name='table' value='$table_name'>";
+
     }
     if ($table_name == "Car_colour") {
         $sql_brand = "SELECT DISTINCT `brand_name` FROM `Brand` ORDER BY `brand_name` DESC";
@@ -66,7 +66,6 @@ function get_filters($table_name)
         echo "<button class='filter' name='filter'>Отфильтровать</button>";
 
     }
-
     if ($table_name == "Order_status") {
         $sql_status = "SELECT DISTINCT `status_name` FROM `Status` ORDER BY `status_name` DESC";
         $sql_order = "SELECT DISTINCT `id` FROM `Order` ORDER BY `id` DESC";

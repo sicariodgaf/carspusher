@@ -4,7 +4,13 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <title>Заголовок страницы</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.0/slimselect.min.css"
+          integrity="sha512-QhrDqeRszsauAfwqszbR3mtxV3ZWp44Lfuio9t1ccs7H15+ggGbpOqaq4dIYZZS3REFLqjQEC1BjmYDxyqz0ZA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Carspusher</title>
 </head>
 <body>
 <div class="topnav">
@@ -70,6 +76,8 @@ if (isset($_POST['formSubmit'])) {
     $stmt->execute();
     header("Location:carsinorder.php");
     exit();
+    echo '<script> new SlimSelect({select: "#add_car_colour_id"});</script>';
+    echo '<script> new SlimSelect({select: "#add_order_id"});</script>';
 }
 ?>
 </body>
